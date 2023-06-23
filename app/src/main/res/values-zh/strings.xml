@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Color Tools</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="a_md_ai_server_hint">AI服务器地址 例如：http://192.168.1.100</string>
+    <string name="a_md_model_name_title">模型名称:</string>
+    <string name="a_md_model_name_hint">模型名称</string>
+    <string name="a_md_accuracy_title">准确率:</string>
+    <string name="a_md_dataset_title">数据集数量:</string>
+    <string name="a_md_train_set_ratio_title">训练集占比:</string>
+    <string name="a_md_train_set_ratio_hint">训练集占比</string>
+    <string name="a_md_color_channel_title">取色通道:</string>
+    <string name="a_md_tolerance_error_title">容许误差:</string>
+    <string name="a_md_tolerance_error_hint">容许误差</string>
+    <string name="a_md_fitting_result_title">拟合结果:</string>
+    <string name="a_md_data_set_title">数据集</string>
+    <string name="a_m_picker_name">取色</string>
+    <string name="a_m_function">功能</string>
+    <string name="d_d_channel_val_title">通道值（不使用则留空）</string>
+    <string name="d_d_r_channel_hint">R通道值</string>
+    <string name="d_d_g_channel_hint">G通道值</string>
+    <string name="d_d_b_channel_hint">B通道值</string>
+    <string name="d_d_concentration_title">浓度值</string>
+    <string name="d_d_concentration_hint">浓度值</string>
+    <string name="f_c_concentration_predict">浓度值：未知</string>
+    <string name="f_c_mode_choose">选择模式</string>
+    <string name="i_d_concentration_val">浓度值: xxx</string>
+</resources>

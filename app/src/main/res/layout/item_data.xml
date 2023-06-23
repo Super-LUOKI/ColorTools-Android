@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:gravity="center_vertical"
+    android:layout_height="55dp"
+    android:paddingLeft="10dp"
+    android:layout_marginBottom="2px"
+    android:background="#fff">
+
+    <ImageView
+        android:id="@+id/data_color_preview"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@color/purple_500"
+        android:src="@drawable/shape_border_white"/>
+
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/data_hex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="#0f0f0f"
+            android:text="Hex: #f5f5f5"/>
+
+        <TextView
+            android:id="@+id/data_rgb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="#0f0f0f"
+            android:text="RGB: 66, 55, 44"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|right"
+        android:layout_marginRight="10dp">
+
+    <TextView
+        android:id="@+id/data_potency"
+        android:layout_marginLeft="40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="#000"
+        android:text="@string/i_d_concentration_val"/>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/data_delete"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_baseline_delete"/>
+
+    </LinearLayout>
+
+</LinearLayout>

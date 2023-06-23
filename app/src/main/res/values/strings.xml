@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Color Tools</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="a_md_ai_server_hint">AI server address, for example: http://192.168.1.100</string>
+    <string name="a_md_model_name_title">Name:</string>
+    <string name="a_md_model_name_hint">Model Name</string>
+    <string name="a_md_accuracy_title">Accuracy:</string>
+    <string name="a_md_dataset_title">Dataset Count:</string>
+    <string name="a_md_train_set_ratio_title">Training Ratio:</string>
+    <string name="a_md_train_set_ratio_hint">Training Ratio</string>
+    <string name="a_md_color_channel_title">Channel:</string>
+    <string name="a_md_tolerance_error_title">Error:</string>
+    <string name="a_md_tolerance_error_hint">Tolerance Error</string>
+    <string name="a_md_fitting_result_title">Fitting:</string>
+    <string name="a_md_data_set_title">Dataset</string>
+    <string name="a_m_picker_name">Color Picker</string>
+    <string name="a_m_function">Function</string>
+    <string name="d_d_channel_val_title">Channel Value (leave empty if not used)</string>
+    <string name="d_d_r_channel_hint">R Value</string>
+    <string name="d_d_g_channel_hint">G Value</string>
+    <string name="d_d_b_channel_hint">B Value</string>
+    <string name="d_d_concentration_title">Concentration Value</string>
+    <string name="d_d_concentration_hint">Concentration Value</string>
+    <string name="f_c_concentration_predict">Con: Unknown</string>
+    <string name="f_c_mode_choose">Mode</string>
+    <string name="i_d_concentration_val">Concentration xxx</string>
+</resources>
