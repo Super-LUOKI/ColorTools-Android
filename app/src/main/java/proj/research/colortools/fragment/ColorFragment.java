@@ -7,9 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -19,7 +20,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
@@ -40,19 +40,19 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -72,7 +72,7 @@ public class ColorFragment extends Fragment {
     private int mMode = MODE_VIDEO;
     private LinearModel mModel;
     //选取的图片Uri列表
-    private List<Uri> mPicUriList = new ArrayList<>();
+    private List<Bitmap> mPicUriList = new ArrayList<>();
     private int mCurrentPicIndex = 0;
 
     private static final String TAG = "ColorFragment";
@@ -192,9 +192,9 @@ public class ColorFragment extends Fragment {
             //判断系统的语言是中文还是其他，其他使用英语
             builder.setTitle(mIsChinese ? "选项选择" : "Choose Mode");
             String[] items = null;
-            if (mIsChinese){
+            if (mIsChinese) {
                 items = new String[]{"视频模式", "图片模式", "选择浓度模型"};
-            }else{
+            } else {
                 items = new String[]{"Video Mode", "Picture Mode", "Select Model"};
             }
 
@@ -266,6 +266,7 @@ public class ColorFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == 1) {
+                Log.e(TAG, "确认多选");
                 //获取选择的图片
                 ClipData clipData = data.getClipData();
                 if (clipData != null) {
@@ -273,14 +274,20 @@ public class ColorFragment extends Fragment {
                     for (int i = 0; i < clipData.getItemCount(); i++) {
                         ClipData.Item item = clipData.getItemAt(i);
                         Uri uri = item.getUri();
-                        //将选择的图片的uri添加到集合中
-                        mPicUriList.add(uri);
+                        Bitmap bitmap = getROI(uri);
+                        if(bitmap != null){
+                            mPicUriList.add(bitmap);
+                        }
+
                     }
                 } else {
+                    Log.e(TAG, "确认单选");
                     //单选
                     Uri uri = data.getData();
-                    //将选择的图片的uri添加到集合中
-                    mPicUriList.add(uri);
+                    Bitmap bitmap = getROI(uri);
+                    if(bitmap != null){
+                        mPicUriList.add(bitmap);
+                    }
                 }
                 //显示第一张图片
                 this.mCurrentPicIndex = 0;
@@ -296,6 +303,125 @@ public class ColorFragment extends Fragment {
         }
     }
 
+
+    private Bitmap getROI(Uri imgUri) {
+        int avgR = -1;
+        int avgG = -1;
+        int avgB = -1;
+        //根据uri获取Bitmap
+        Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(mContext.getContentResolver(), imgUri);
+
+            Mat src = new Mat();
+            Utils.bitmapToMat(bitmap, src);
+
+            Mat hsvImage = new Mat();
+            Imgproc.cvtColor(src, hsvImage, Imgproc.COLOR_BGR2HSV);
+
+            Mat mask = new Mat();
+            Core.inRange(hsvImage, new Scalar(0, 100, 100), new Scalar(179, 255, 255), mask);
+
+            // 进行形态学操作
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
+            Imgproc.morphologyEx(mask, mask, Imgproc.MORPH_OPEN, kernel);
+
+            // 寻找轮廓
+            List<MatOfPoint> contours = new ArrayList<>();
+            Mat hierarchy = new Mat();
+            Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+             // ROI
+            List<Mat> roiImages = new ArrayList<>();
+            for (MatOfPoint contour : contours) {
+                org.opencv.core.Rect boundingRect = Imgproc.boundingRect(contour);
+                if (boundingRect.width > 0 && boundingRect.height > 0) {
+                    Mat roi = new Mat(src, boundingRect);
+                    roiImages.add(roi);
+                }
+            }
+
+            Log.e(TAG, "ROI Size: " + roiImages.size());
+
+            //复制传入的bitmap
+            Bitmap bitmapCopy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            // 创建一个 Canvas 对象
+            Canvas canvas = new Canvas(bitmapCopy);
+            //canvas.drawColor(Color.WHITE);
+            // 创建一个画笔对象
+            Paint paint = new Paint();
+            paint.setColor(Color.GREEN);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setStrokeWidth(2);
+
+            //int y = 0;
+            //int x = 0;
+            //
+            //// 绘制 ROI
+            //for (Mat roi : roiImages) {
+            //    // 将 Mat 转换为 Bitmap
+            //    Bitmap roiBitmap = Bitmap.createBitmap(roi.cols(), roi.rows(), Bitmap.Config.ARGB_8888);
+            //    Utils.matToBitmap(roi, roiBitmap);
+            //    Log.e(TAG, "ROI Width: " + roiBitmap.getWidth() + ", Height: " + roiBitmap.getHeight());
+            //    // 绘制 ROI 到 Bitmap
+            //    canvas.drawBitmap(roiBitmap, x, y, null);
+            //    x = (x + roi.cols()) % roiBm.getWidth();
+            //    if (x == 0) {
+            //        y += roi.rows();
+            //    }
+            //}
+
+            int cnt = 0;
+            // 将ROI中所有像素的RGB值相加求平均值
+            for (Mat roi : roiImages) {
+                double r, g, b;
+                for (int i = 0; i < roi.rows(); i++) {
+                    for (int j = 0; j < roi.cols(); j++) {
+                        double[] rgb = roi.get(i, j);
+                        r = rgb[0];
+                        g = rgb[1];
+                        b = rgb[2];
+                        if(notGrey(r, g, b, 50)) {
+                            avgR += r;
+                            avgG += g;
+                            avgB += b;
+                            cnt++;
+                        }
+                    }
+                }
+            }
+            avgB /= cnt;
+            avgG /= cnt;
+            avgR /= cnt;
+
+            if(roiImages.size() == 0){
+                canvas.drawText("未检测到ROI", bitmap.getWidth() - 1000, bitmap.getHeight() - 100, paint);
+            }else{
+                //在图像右下角绘制平均RGB
+                paint.setTextSize(100);
+                canvas.drawText("ROI Average RGB", bitmap.getWidth() - 1000, bitmap.getHeight() - 200, paint);
+                canvas.drawText("R: " + avgR + ", G: " + avgG + ", B: " + avgB, bitmap.getWidth() - 1000, bitmap.getHeight() - 100, paint);
+            }
+
+           return bitmapCopy;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 判断是否是灰色
+     * @param r 红色值
+     * @param g 绿色值
+     * @param b 蓝色值
+     * @param diff 判定条件（允许的像素最小差值）
+     * @return
+     */
+    private boolean notGrey(double r, double g, double b, int diff) {
+        return Math.abs(r - g) > diff || Math.abs(r - b) > diff || Math.abs(g - b) > diff;
+    }
+
     /**
      * 显示选择的预览图片
      */
@@ -303,7 +429,7 @@ public class ColorFragment extends Fragment {
         if (mPicUriList.size() == 0 || mCurrentPicIndex < 0 || mCurrentPicIndex >= mPicUriList.size()) {
             return;
         }
-        mPicPreviewImg.setImageURI(mPicUriList.get(mCurrentPicIndex));
+        mPicPreviewImg.setImageBitmap(mPicUriList.get(mCurrentPicIndex));
         //如果是第一张图片则隐藏 上一张 图片，如果是最后一张图片则隐藏 下一张 图片
         if (mCurrentPicIndex == 0) {
             mPreviewLastBtn.setVisibility(View.INVISIBLE);
@@ -485,8 +611,8 @@ public class ColorFragment extends Fragment {
                 return;
             }
 
-            Log.e(TAG, "HanldeRGBPreviewCallback " + (++a) + " times");
-            Log.e(TAG, "SurfaceView: " + "size = " + mPreviewView.getWidth() + "x" + mPreviewView.getHeight());
+            //Log.e(TAG, "HanldeRGBPreviewCallback " + (++a) + " times");
+            //Log.e(TAG, "SurfaceView: " + "size = " + mPreviewView.getWidth() + "x" + mPreviewView.getHeight());
             //YuvImage image = new YuvImage(data, ImageFormat.NV21, mCameraSize.width, mCameraSize.height, null);
             if (data != null && data.length != 0) {
                 this.mHandleThread.addTask(data);
@@ -615,7 +741,7 @@ public class ColorFragment extends Fragment {
                 return;
             }
             pixel = bitmap.getPixel(centerX, centerY);
-            Log.e(TAG, "centerX = " + centerX + ", centerY = " + centerY);
+            //Log.e(TAG, "centerX = " + centerX + ", centerY = " + centerY);
         } else {
             if (mPreViewBm == null) {
                 return;
@@ -662,7 +788,7 @@ public class ColorFragment extends Fragment {
         double concentration = weight[0] * red + weight[1] * green + weight[2] * blue + bias;
         //将浓度保留小数点后三位（四舍五入）
         concentration = (double) Math.round(concentration * 1000) / 1000;
-        mConceTv.setText((mIsChinese ? "浓度: " : "Con" )+ concentration);
+        mConceTv.setText((mIsChinese ? "浓度: " : "Con") + concentration);
     }
 
 
